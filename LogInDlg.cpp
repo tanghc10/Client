@@ -4,6 +4,8 @@
 #include "stdafx.h"
 #include "Client.h"
 #include "LogInDlg.h"
+#include "Header.h"
+#include "cJSON.h"
 #include "RegisterDlg.h"
 #include "afxdialogex.h"
 #include "SessionSocket.h"
@@ -17,6 +19,7 @@ IMPLEMENT_DYNAMIC(CLogInDlg, CDialogEx)
 CLogInDlg::CLogInDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_DLG_LOGIN, pParent)
 	, m_strUser(_T(""))
+	, m_strPsw(_T(""))
 {
 	//初始化IP地址
 	//DWORD 就是unSigned long
@@ -31,6 +34,7 @@ void CLogInDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Text(pDX, IDC_ET_NAME, m_strUser);
+	DDX_Text(pDX, IDC_ET_PSW, m_strPsw);
 }
 
 BEGIN_MESSAGE_MAP(CLogInDlg, CDialogEx)
@@ -49,12 +53,6 @@ void CLogInDlg::OnBnClickedBtnLogoin()
 		return;
 	}
 
-	if (m_dwIP == 0)
-	{
-		AfxMessageBox(_T("无效IP地址"));
-		return;
-	}
-
 	CSessionSocket* pSock = theApp.GetMainSocket();
 	IN_ADDR addr;
 	addr.S_un.S_addr = htonl(m_dwIP);
@@ -64,18 +62,28 @@ void CLogInDlg::OnBnClickedBtnLogoin()
 	CString ip = _T("192.168.11.1");
 	pSock->Connect(ip, 5050);
 
-	CString Cm_strUser = m_strUser;
-	char from_user[20];
-	memset(from_user, 0, sizeof(from_user));
-	WideCharToMultiByte(CP_OEMCP, 0, (LPCTSTR)m_strUser, -1, from_user, 260, 0, false);
+	cJSON *json_root = NULL;
+	CString str = _T("{\"username\":\"") + m_strUser + _T("\", \"password\":\"") + m_strPsw + _T("\"}");
+	int len = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
+	char *data = new char[len + 1];
+	WideCharToMultiByte(CP_ACP, 0, str, -1, data, len, NULL, NULL);
+
+	_bstr_t b(m_strUser);
+	char *name = b;
 	//发送
 	pSock->m_strUserName = m_strUser;  //将用户名字传递过去
-	char* pBuff = new char[m_strUser.GetLength() + 1];
-	memset(pBuff, 0, m_strUser.GetLength());  //开辟一个，存储用户名的内存空间
-	if (WChar2MByte(m_strUser.GetBuffer(0), pBuff, m_strUser.GetLength() + 1))
-		pSock->LogoIn(pBuff, m_strUser.GetLength() + 1, from_user);  //头部空间，和头部长度
-	delete pBuff;
-	CDialogEx::OnOK();
+	pSock->LogoIn(data, strlen(data), name);
+}
+
+void CLogInDlg::RvcFromServer(char *buf) {
+	if (*buf == '1') {
+		CDialogEx::OnOK();
+	}
+	else {
+		CString str("用户名或密码错误！");
+		AfxMessageBox(str);
+		return;
+	}
 }
 
 BOOL CLogInDlg::OnInitDialog()

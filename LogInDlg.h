@@ -24,8 +24,10 @@ protected:
 public:
 	afx_msg void OnBnClickedBtnLogoin();
 	virtual BOOL OnInitDialog();
+	void RvcFromServer(char *buf);
 	DWORD m_dwIP;
 	CString m_strUser;
 	CRegisterDlg *registDlg;
 	afx_msg void to_Regist();
+	CString m_strPsw;
 };

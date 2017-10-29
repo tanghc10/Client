@@ -116,7 +116,7 @@ void CRegisterDlg::getRegistMsg(char *buf) {
 	if (*buf == '1') {
 		CString str("注册成功！");
 		AfxMessageBox(str);
-		CDialogEx::OnOK();
+		CDialogEx::EndDialog(IDOK);
 	}
 	else {
 		CString str("用户名重复！");

@@ -62,6 +62,9 @@ void CSessionSocket::OnReceive(int nErrorCode)
 		case MSG_REGIST:
 			((CRegisterDlg*)(AfxGetApp()->GetMainWnd()))->getRegistMsg(pBuff);
 			break;
+		case MSG_LOGOIN:
+			((CLogInDlg*)(AfxGetApp()->GetMainWnd()))->RvcFromServer(pBuff);
+			break;
 		default: break;
 	}
 	delete pBuff;
@@ -102,7 +105,7 @@ BOOL CSessionSocket::LogoIn(LPSTR lpBuff, int nlen, char from_user[20])
 	strcpy(_head.from_user, from_user);
 
 	CSessionSocket* pSock = theApp.GetMainSocket();
-	int i = pSock->Send((char *)&_head, sizeof(_head));
+	pSock->Send((char *)&_head, sizeof(_head));
 	pSock->Send(lpBuff, nlen);
 
 	return TRUE;
