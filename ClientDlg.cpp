@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "Client.h"
 #include "ClientDlg.h"
+#include "cJSON.h"
 #include "afxdialogex.h"
 #include "ChatDlg.h"
 
@@ -25,6 +26,7 @@ CClientDlg::CClientDlg(CWnd* pParent /*=NULL*/)
 void CClientDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_LB_ONLINE, m_listBox);
 }
 
 BEGIN_MESSAGE_MAP(CClientDlg, CDialogEx)
@@ -66,7 +68,6 @@ BOOL CClientDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
-	// TODO: 在此添加额外的初始化代码
 	SetWindowText(m_caption);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -122,11 +123,7 @@ HCURSOR CClientDlg::OnQueryDragIcon()
 void CClientDlg::UpdateUserInfo(CString strInfo)  //显示所有用户
 {
 	CString strTmp;
-	CListBox* pBox = (CListBox*)GetDlgItem(IDC_LB_ONLINE);
-	pBox->ResetContent();
-
 	CString m_strUserName = theApp.GetMainSocket()->m_strUserName;
-	strInfo = _T("所有人#") + strInfo;
 
 	while (!strInfo.IsEmpty())
 	{
@@ -134,9 +131,21 @@ void CClientDlg::UpdateUserInfo(CString strInfo)  //显示所有用户
 		if (n == -1)
 			break;
 		strTmp = strInfo.Left(n);
-		if (strTmp != m_strUserName)
+		_bstr_t b(strTmp);
+		char *data = b;
+		cJSON *json_root = NULL;
+		json_root = cJSON_Parse(data);
+		char *name = cJSON_GetObjectItem(json_root, "name")->valuestring;
+		char *status = cJSON_GetObjectItem(json_root, "status")->valuestring;
+		CString Name(name);
+		if (Name.Compare(m_strUserName) != 0)
 		{
-			pBox->AddString(strTmp);
+			if (*status == 'Y') {
+				m_listBox.InsertString(0, Name, RGB(0, 255, 0));
+			}
+			else {
+				m_listBox.AddString(Name);
+			}
 		}
 		strInfo = strInfo.Right(strInfo.GetLength() - n - 1);
 	}
@@ -144,14 +153,13 @@ void CClientDlg::UpdateUserInfo(CString strInfo)  //显示所有用户
 
 void CClientDlg::On_choose()
 {
-	CListBox *pList = (CListBox *)GetDlgItem(IDC_LB_ONLINE);
 	CString tep(_T(""));
 	int nIndex = 0;
-	nIndex = pList->GetCurSel();
+	nIndex = m_listBox.GetCurSel();
 	if (LB_ERR == nIndex) {
 		return;
 	}
-	pList->GetText(nIndex, tep);
+	m_listBox.GetText(nIndex, tep);
 	CChatDlg *chatdlg;
 	chatdlg = new CChatDlg();
 	chatdlg->m_caption = _T("与 ") + tep + _T(" 的聊天");

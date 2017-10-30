@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "MyListBox.h"
 
 // CClientDlg ¶Ô»°¿ò
 class CClientDlg : public CDialogEx
@@ -37,4 +38,5 @@ public:
 	char *toUser;
 	afx_msg void On_choose();
 	CPtrList *m_chatList;
+	CMyListBox m_listBox;
 };
