@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RegisterDlg.h"
+#include "ResetPswDlg.h"
 
 // LogInDlg ¶Ô»°¿ò
 
@@ -28,6 +29,8 @@ public:
 	DWORD m_dwIP;
 	CString m_strUser;
 	CRegisterDlg *registDlg;
+	CResetPswDlg *resetDlg;
 	afx_msg void to_Regist();
 	CString m_strPsw;
+	afx_msg void to_ResetPsw();
 };

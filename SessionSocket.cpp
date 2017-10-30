@@ -6,6 +6,7 @@
 #include "SessionSocket.h"
 #include "Header.h"
 #include "ClientDlg.h"
+#include "ResetPswDlg.h"
 
 // CSessionSocket
 
@@ -64,6 +65,12 @@ void CSessionSocket::OnReceive(int nErrorCode)
 			break;
 		case MSG_LOGOIN:
 			((CLogInDlg*)(AfxGetApp()->GetMainWnd()))->RvcFromServer(pBuff);
+			break;
+		case MSG_GETQUE:
+			((CResetPswDlg*)(AfxGetApp()->GetMainWnd()))->RcvQuestion(pBuff);
+			break;
+		case MSG_RESET:
+			((CResetPswDlg*)(AfxGetApp()->GetMainWnd()))->On_GetReset(pBuff);
 			break;
 		default: break;
 	}

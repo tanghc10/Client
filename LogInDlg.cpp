@@ -40,6 +40,7 @@ void CLogInDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CLogInDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BTN_LOGOIN, &CLogInDlg::OnBnClickedBtnLogoin)
 	ON_BN_CLICKED(IDC_BTN_REGIST, &CLogInDlg::to_Regist)
+	ON_BN_CLICKED(IDC_BUTTON2, &CLogInDlg::to_ResetPsw)
 END_MESSAGE_MAP()
 
 
@@ -108,9 +109,6 @@ BOOL CLogInDlg::WChar2MByte(LPCWSTR lpSrc, LPSTR lpDest, int nlen)
 
 void CLogInDlg::to_Regist()
 {
-	/*registDlg = new CRegisterDlg();
-	registDlg->Create(IDD_REGISTERDLG);
-	registDlg->ShowWindow(SW_SHOW);*/
 	registDlg = new CRegisterDlg();
 	INT_PTR rsp = registDlg->DoModal();
 	if (rsp == IDCANCEL) {
@@ -118,5 +116,17 @@ void CLogInDlg::to_Regist()
 	}
 	else {
 		delete registDlg;
+	}
+}
+
+void CLogInDlg::to_ResetPsw()
+{
+	resetDlg = new CResetPswDlg();
+	INT_PTR rsp = resetDlg->DoModal();
+	if (rsp == IDCANCEL) {
+		delete resetDlg;
+	}
+	else {
+		delete resetDlg;
 	}
 }

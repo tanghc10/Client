@@ -189,6 +189,7 @@
     <ClInclude Include="Header.h" />
     <ClInclude Include="LogInDlg.h" />
     <ClInclude Include="RegisterDlg.h" />
+    <ClInclude Include="ResetPswDlg.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SessionSocket.h" />
     <ClInclude Include="stdafx.h" />
@@ -201,6 +202,7 @@
     <ClCompile Include="ClientDlg.cpp" />
     <ClCompile Include="LogInDlg.cpp" />
     <ClCompile Include="RegisterDlg.cpp" />
+    <ClCompile Include="ResetPswDlg.cpp" />
     <ClCompile Include="SessionSocket.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

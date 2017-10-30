@@ -85,7 +85,6 @@ void CRegisterDlg::OnRegist()
 		AfxMessageBox(_T("请检查两次密码输入是否相同！"));
 		return;
 	}
-	cJSON *json_root = NULL;
 	CString str = _T("{\"username\":\"") + userName + _T("\", \"password\":\"") + userPassword + _T("\", \"question\":\"") + question + _T("\", \"answer\":\"") + userAnswer + _T("\"}");
 	int len = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
 	char *data = new char[len + 1];
