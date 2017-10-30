@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "Client.h"
+#include "MD5.h"
 #include "LogInDlg.h"
 #include "Header.h"
 #include "cJSON.h"
@@ -63,21 +64,32 @@ void CLogInDlg::OnBnClickedBtnLogoin()
 	CString ip = _T("192.168.11.1");
 	pSock->Connect(ip, 5050);
 
+	_bstr_t b(m_strPsw);
+	char* c = b;
+	string Psw = c;
+	string a = MD5(Psw).toStr();
+	CString MD5Password(a.data());
+
 	cJSON *json_root = NULL;
-	CString str = _T("{\"username\":\"") + m_strUser + _T("\", \"password\":\"") + m_strPsw + _T("\"}");
+	CString str = _T("{\"username\":\"") + m_strUser + _T("\", \"password\":\"") + MD5Password + _T("\"}");
 	int len = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
 	char *data = new char[len + 1];
 	WideCharToMultiByte(CP_ACP, 0, str, -1, data, len, NULL, NULL);
 
-	_bstr_t b(m_strUser);
-	char *name = b;
+	_bstr_t Name(m_strUser);
+	char *name = Name;
 	//发送
 	pSock->m_strUserName = m_strUser;  //将用户名字传递过去
 	pSock->LogoIn(data, strlen(data), name);
 }
 
 void CLogInDlg::RvcFromServer(char *buf) {
-	if (*buf == '1') {
+
+	cJSON *json_root = NULL;
+	json_root = cJSON_Parse(buf);
+	int cmd = cJSON_GetObjectItem(json_root, "cmd")->valueint;
+
+	if (cmd == 1) {
 		CDialogEx::OnOK();
 	}
 	else {
@@ -90,7 +102,6 @@ void CLogInDlg::RvcFromServer(char *buf) {
 BOOL CLogInDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
-
 	UpdateData(0);
 	((CEdit*)GetDlgItem(IDC_ET_PSW))->SetWindowTextW(_T(""));
 	return TRUE;
@@ -105,7 +116,6 @@ BOOL CLogInDlg::WChar2MByte(LPCWSTR lpSrc, LPSTR lpDest, int nlen)
 	WideCharToMultiByte(CP_OEMCP, 0, lpSrc, -1, lpDest, nlen, 0, FALSE);
 	return TRUE;
 }
-
 
 void CLogInDlg::to_Regist()
 {

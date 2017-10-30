@@ -33,6 +33,8 @@ void CSessionSocket::OnReceive(int nErrorCode)
 
 	head.type = ((LPHEADER)pHead)->type;
 	head.nContentLen = ((LPHEADER)pHead)->nContentLen;
+	memset(head.to_user, 0, sizeof(head.to_user));
+	memset(head.from_user, 0, sizeof(head.from_user));
 	strcpy(head.from_user, ((LPHEADER)pHead)->from_user);
 	delete pHead;
 	pHead = NULL;

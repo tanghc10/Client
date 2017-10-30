@@ -5,6 +5,7 @@
 #include "Client.h"
 #include "RegisterDlg.h"
 #include "afxdialogex.h"
+#include "MD5.h"
 #include "cJSON.h"
 #include "Header.h"
 
@@ -85,7 +86,14 @@ void CRegisterDlg::OnRegist()
 		AfxMessageBox(_T("请检查两次密码输入是否相同！"));
 		return;
 	}
-	CString str = _T("{\"username\":\"") + userName + _T("\", \"password\":\"") + userPassword + _T("\", \"question\":\"") + question + _T("\", \"answer\":\"") + userAnswer + _T("\"}");
+
+	_bstr_t b(userPassword);
+	char* c = b;
+	string Psw = c;
+	string a = MD5(Psw).toStr();
+	CString MD5Password(a.data());
+
+	CString str = _T("{\"username\":\"") + userName + _T("\", \"password\":\"") + MD5Password + _T("\", \"question\":\"") + question + _T("\", \"answer\":\"") + userAnswer + _T("\"}");
 	int len = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
 	char *data = new char[len + 1];
 	WideCharToMultiByte(CP_ACP, 0, str, -1, data, len, NULL, NULL);
@@ -94,8 +102,8 @@ void CRegisterDlg::OnRegist()
 	head.type = MSG_REGIST;
 	head.nContentLen = len + 1;
 	memset(head.from_user, 0, sizeof(head.from_user));
-	_bstr_t b(userName);
-	char *name = b;
+	_bstr_t tempName(userName);
+	char *name = tempName;
 	strcpy(head.from_user, name);
 	memset(head.to_user, 0, sizeof(head.to_user));
 
@@ -112,7 +120,12 @@ void CRegisterDlg::OnRegist()
 }
 
 void CRegisterDlg::getRegistMsg(char *buf) {
-	if (*buf == '1') {
+
+	cJSON *json_root = NULL;
+	json_root = cJSON_Parse(buf);
+	int cmd = cJSON_GetObjectItem(json_root, "cmd")->valueint;
+
+	if (cmd == 1) {
 		CString str("注册成功！");
 		AfxMessageBox(str);
 		CDialogEx::EndDialog(IDOK);
