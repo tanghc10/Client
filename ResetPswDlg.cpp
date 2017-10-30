@@ -136,6 +136,11 @@ void CResetPswDlg::On_GetQuestion()
 void CResetPswDlg::RcvQuestion(char *buff) {
 	cJSON *json_root = NULL;
 	json_root = cJSON_Parse(buff);
+	int cmd = cJSON_GetObjectItem(json_root, "cmd")->valueint;
+	if (cmd == 0) {
+		AfxMessageBox(_T("无效的用户名"));
+		return;
+	}
 	char *name = cJSON_GetObjectItem(json_root, "question")->valuestring;
 	CString str(name);
 	SetDlgItemText(RESET_QUE, str);

@@ -155,14 +155,11 @@ void CClientDlg::On_choose()
 	CChatDlg *chatdlg;
 	chatdlg = new CChatDlg();
 	chatdlg->m_caption = _T("与 ") + tep + _T(" 的聊天");
+	chatdlg->to_user = tep;
 	//chatdlg->DoModal(); 使用模态对话框会使原对话框不可用
 	//此处应使用非模态对话框
 	chatdlg->Create(IDD_CHATDLG);
 	chatdlg->ShowWindow(SW_SHOW);
-	/*toUser = new char[tep.GetLength() * 2 + 1];
-	memset(toUser, 0, tep.GetLength() * 2 + 1);
-	WChar2MByte(tep.GetBuffer(0), toUser, tep.GetLength() * 2 + 1);*/
-	/*CDialogEx::OnOK();*/
 }
 
 BOOL CClientDlg::WChar2MByte(LPCWSTR lpSrc, LPSTR lpDest, int nlen)

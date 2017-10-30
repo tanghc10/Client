@@ -28,7 +28,7 @@ protected:
 public:
 	afx_msg void OnBnClickedBtnSend();
 	CString m_strSend;
+	CString to_user;
 	CString m_caption;//对话框标题设置
 	char *touser;
-	
 };

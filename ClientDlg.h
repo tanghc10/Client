@@ -36,4 +36,5 @@ public:
 	CString m_caption;//对话框标题设置
 	char *toUser;
 	afx_msg void On_choose();
+	CPtrList *m_chatList;
 };

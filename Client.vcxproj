@@ -188,6 +188,7 @@
     <ClInclude Include="ClientDlg.h" />
     <ClInclude Include="Header.h" />
     <ClInclude Include="LogInDlg.h" />
+    <ClInclude Include="MD5.h" />
     <ClInclude Include="RegisterDlg.h" />
     <ClInclude Include="ResetPswDlg.h" />
     <ClInclude Include="Resource.h" />
@@ -201,6 +202,7 @@
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="ClientDlg.cpp" />
     <ClCompile Include="LogInDlg.cpp" />
+    <ClCompile Include="MD5.cpp" />
     <ClCompile Include="RegisterDlg.cpp" />
     <ClCompile Include="ResetPswDlg.cpp" />
     <ClCompile Include="SessionSocket.cpp" />
