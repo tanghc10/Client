@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "Client.h"
+#include "MD5.h"
 #include "Header.h"
 #include "cJSON.h"
 #include "ResetPswDlg.h"
@@ -59,10 +60,19 @@ void CResetPswDlg::On_ResetPsw()
 	UpdateData(TRUE);
 	if (m_username.IsEmpty() || m_answer.IsEmpty() || m_password.IsEmpty()) {
 		AfxMessageBox(_T("请完成填写上述所有信息！"));
+		return;
 	}else if (m_password.Compare(m_pswComfirm) != 0){
 		AfxMessageBox(_T("请检查两次密码输入是否相同！"));
+		return;
 	}
-	CString str = _T("{\"username\":\"") + m_username + _T("\", \"password\":\"") + m_password + _T("\", \"answer\":\"") + m_answer + _T("\"}");
+
+	_bstr_t p(m_password);
+	char* c = p;
+	string Psw = c;
+	string a = MD5(Psw).toStr();
+	CString MD5Password(a.data());
+
+	CString str = _T("{\"username\":\"") + m_username + _T("\", \"password\":\"") + MD5Password + _T("\", \"answer\":\"") + m_answer + _T("\"}");
 	int len = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
 	char *data = new char[len + 1];
 	WideCharToMultiByte(CP_ACP, 0, str, -1, data, len, NULL, NULL);
@@ -79,13 +89,16 @@ void CResetPswDlg::On_ResetPsw()
 	strcpy(head.to_user, "Server");
 
 	CSessionSocket* pSock = theApp.GetMainSocket();
-	IN_ADDR addr;
-	addr.S_un.S_addr = htonl(m_dwIP);
-	//inet_ntoa返回一个char *,而这个char *的空间是在inet_ntoa里面静态分配
-	CString strIP(inet_ntoa(addr));
-	//开始只是创建了，并没有连接，这里连接socket，这个5050端口要和服务端监听的端口一直，否则监听不到的。
-	CString ip = _T("192.168.11.1");
-	pSock->Connect(ip, 5050);
+	if (pSock->Is_Connect == FALSE) {
+		IN_ADDR addr;
+		addr.S_un.S_addr = htonl(m_dwIP);
+		//inet_ntoa返回一个char *,而这个char *的空间是在inet_ntoa里面静态分配
+		CString strIP(inet_ntoa(addr));
+		//开始只是创建了，并没有连接，这里连接socket，这个5050端口要和服务端监听的端口一直，否则监听不到的。
+		CString ip = _T("192.168.11.1");
+		pSock->Connect(ip, 5050);
+		pSock->Is_Connect = TRUE;
+	}
 	pSock->Send(&head, sizeof(head));
 	pSock->Send(data, len + 1);
 }
@@ -122,13 +135,16 @@ void CResetPswDlg::On_GetQuestion()
 	strcpy(head.to_user, "Server");
 
 	CSessionSocket* pSock = theApp.GetMainSocket();
-	IN_ADDR addr;
-	addr.S_un.S_addr = htonl(m_dwIP);
-	//inet_ntoa返回一个char *,而这个char *的空间是在inet_ntoa里面静态分配
-	CString strIP(inet_ntoa(addr));
-	//开始只是创建了，并没有连接，这里连接socket，这个5050端口要和服务端监听的端口一直，否则监听不到的。
-	CString ip = _T("192.168.11.1");
-	pSock->Connect(ip, 5050);
+	if (pSock->Is_Connect == FALSE) {
+		IN_ADDR addr;
+		addr.S_un.S_addr = htonl(m_dwIP);
+		//inet_ntoa返回一个char *,而这个char *的空间是在inet_ntoa里面静态分配
+		CString strIP(inet_ntoa(addr));
+		//开始只是创建了，并没有连接，这里连接socket，这个5050端口要和服务端监听的端口一直，否则监听不到的。
+		CString ip = _T("192.168.11.1");
+		pSock->Connect(ip, 5050);
+		pSock->Is_Connect = TRUE;
+	}
 	pSock->Send(&head, sizeof(head));
 	pSock->Send(data, len + 1);
 }
