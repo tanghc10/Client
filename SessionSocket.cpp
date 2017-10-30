@@ -121,7 +121,6 @@ BOOL CSessionSocket::LogoIn(LPSTR lpBuff, int nlen, char from_user[20])
 	return TRUE;
 }
 
-
 void CSessionSocket::OnClose(int nErrorCode)
 {
 	// TODO: 在此添加专用代码和/或调用基类
