@@ -67,7 +67,6 @@ void CRegisterDlg::comboBoxInit() {
 	m_ComboBox.AddString(_T("您最熟悉的童年好友名字是？"));
 }
 
-
 void CRegisterDlg::OnRegist()
 {
 	UpdateData(TRUE);
@@ -109,10 +108,6 @@ void CRegisterDlg::OnRegist()
 
 	CSessionSocket* pSock = theApp.GetMainSocket();
 	if (pSock->Is_Connect == FALSE) {
-		IN_ADDR addr;
-		addr.S_un.S_addr = htonl(m_dwIP);
-		//inet_ntoa返回一个char *,而这个char *的空间是在inet_ntoa里面静态分配
-		CString strIP(inet_ntoa(addr));
 		//开始只是创建了，并没有连接，这里连接socket，这个5050端口要和服务端监听的端口一直，否则监听不到的。
 		CString ip = _T("192.168.11.1");
 		pSock->Connect(ip, 5050);

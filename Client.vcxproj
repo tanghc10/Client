@@ -187,6 +187,7 @@
     <ClInclude Include="Client.h" />
     <ClInclude Include="ClientDlg.h" />
     <ClInclude Include="Header.h" />
+    <ClInclude Include="ListenSocket.h" />
     <ClInclude Include="LogInDlg.h" />
     <ClInclude Include="MD5.h" />
     <ClInclude Include="MyListBox.h" />
@@ -202,6 +203,7 @@
     <ClCompile Include="cJSON.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="ClientDlg.cpp" />
+    <ClCompile Include="ListenSocket.cpp" />
     <ClCompile Include="LogInDlg.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="MyListBox.cpp" />

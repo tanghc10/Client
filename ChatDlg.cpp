@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "Client.h"
+#include "Header.h"
 #include "ChatDlg.h"
 #include "afxdialogex.h"
 
@@ -13,8 +14,9 @@ IMPLEMENT_DYNAMIC(CChatDlg, CDialogEx)
 CChatDlg::CChatDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CChatDlg::IDD, pParent)
 	, m_strSend(_T(""))
+	, m_strName(_T(""))
 {
-
+	is_connect = FALSE;
 }
 
 CChatDlg::~CChatDlg()
@@ -25,6 +27,7 @@ void CChatDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Text(pDX, IDC_ET_SEND, m_strSend);
+	DDX_Control(pDX, IDC_ET_TEXT, m_edit_text);
 }
 
 
@@ -44,37 +47,56 @@ BOOL CChatDlg::OnInitDialog()
 void CChatDlg::OnBnClickedBtnSend()
 {
 	//发送消息
-	UpdateData();
+	UpdateData(TRUE);
 	if (m_strSend.IsEmpty())
 	{
 		AfxMessageBox(_T("发送类容不能为空！"));
 		return;
 	}
-	CString m_strUserName = theApp.GetMainSocket()->m_strUserName;
-	char from_user[20];
-	memset(from_user, 0, sizeof(from_user));
+	CTime time;
+	time = CTime::GetCurrentTime();  //获取现在时间
+	CString strTime = time.Format("%Y-%m-%d %H:%M:%S ");
+	m_strSend = strTime + m_strName + _T("：\r\n") + m_strSend + _T("\r\n");
+	int len = WideCharToMultiByte(CP_ACP, 0, m_strSend, -1, NULL, 0, NULL, NULL);
+	char *data = new char[len + 1];
+	WideCharToMultiByte(CP_ACP, 0, m_strSend, -1, data, len, NULL, NULL);
 
-	WChar2MByte(m_strUserName.GetBuffer(0), from_user, m_strUserName.GetLength() * 2);
+	if (is_connect == FALSE) {
+		pChatSocket = new CSessionSocket();
+		if (!pChatSocket)
+		{
+			AfxMessageBox(_T("内存不足！"));
+			return;
+		}
 
+		if (pChatSocket->Create(0, SOCK_STREAM, FD_READ | FD_WRITE | FD_OOB | FD_ACCEPT | FD_CONNECT | FD_CLOSE, _T("192.168.11.1")) == FALSE)
+		{
+			AfxMessageBox(_T("创建套接字失败！"));
+			return;
+		}
 
-	CString temp;
-	CTime time = CTime::GetCurrentTime();
-	temp = time.Format("%H:%M:%S");
-	//姓名 +_T("\n\t") 时间
+		pChatSocket->m_strUserName = m_strName;
+		pChatSocket->Connect(to_IP, to_Port);
+		is_connect = true;
+	}
+	m_edit_text.ReplaceSel(m_strSend);
+	HEADER head;
+	head.type = MSG_SEND;
+	head.nContentLen = len + 1;
+	memset(head.from_user, 0, sizeof(head.from_user));
+	_bstr_t b(m_strName);
+	char *name = b;
+	strcpy(head.from_user, name);
+	memset(head.to_user, 0, sizeof(head.to_user));
+	_bstr_t c(to_user);
+	char *toUser = c;
+	strcpy(head.to_user, toUser);
 
-	m_strSend = m_strUserName + _T(" 发送给  ") + touser + _T("  ") + temp + _T("\r\n   ") + m_strSend + _T("\r\n");
-	char* pBuff = new char[m_strSend.GetLength() * 2];
-	memset(pBuff, 0, m_strSend.GetLength() * 2);
+	pChatSocket->Send(&head, sizeof(head));
+	pChatSocket->Send(data, len + 1);
 
-	//转换为多字节
-	WChar2MByte(m_strSend.GetBuffer(0), pBuff, m_strSend.GetLength() * 2);
-	theApp.GetMainSocket()->SendMSG(pBuff, m_strSend.GetLength() * 2, touser, from_user);
-
-	delete pBuff;
-
-	m_strSend.Empty();
-	UpdateData(0);
-	CDialogEx::OnOK();
+ 	m_strSend.Empty();
+	UpdateData(FALSE);
 }
 
 BOOL CChatDlg::WChar2MByte(LPCWSTR lpSrc, LPSTR lpDest, int nlen)
@@ -90,4 +112,35 @@ BOOL CChatDlg::WChar2MByte(LPCWSTR lpSrc, LPSTR lpDest, int nlen)
 void CChatDlg::UpdateText(CString &strText)
 {
 	((CEdit*)GetDlgItem(IDC_ET_TEXT))->ReplaceSel(strText);
+}
+
+void CChatDlg::ConnnectToUser() {
+	pChatSocket = new CSessionSocket();
+	if (!pChatSocket)
+	{
+		AfxMessageBox(_T("内存不足！"));
+		return;
+	}
+
+	if (pChatSocket->Create(0, SOCK_STREAM, FD_READ | FD_WRITE | FD_OOB | FD_ACCEPT | FD_CONNECT | FD_CLOSE, _T("192.168.11.1")) == FALSE)
+	{
+		AfxMessageBox(_T("创建套接字失败！"));
+		return;
+	}
+	//CSessionSocket *pSock = theApp.GetMainSocket();
+	pChatSocket->Connect(to_IP, to_Port);
+	is_connect = TRUE;
+}
+
+void CChatDlg::OnGetNewMsg(char *buf) {
+	CString Msg(buf);
+	m_edit_text.ReplaceSel(Msg);
+}
+
+CSessionSocket *CChatDlg::GetSocket() {
+	return pChatSocket;
+}
+
+void CChatDlg::SetCaption(CString newCaption) {
+	SetWindowText(newCaption);
 }
