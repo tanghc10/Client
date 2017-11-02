@@ -60,6 +60,9 @@
     <ClInclude Include="MyListBox.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="ListenSocket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -93,6 +96,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="MyListBox.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ListenSocket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

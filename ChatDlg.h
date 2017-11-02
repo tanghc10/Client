@@ -27,8 +27,19 @@ protected:
 
 public:
 	afx_msg void OnBnClickedBtnSend();
+	void ConnnectToUser();
+	void OnGetNewMsg(char *);
+	CSessionSocket *GetSocket();
+	void SetCaption(CString newCaption);
 	CString m_strSend;
+	CString m_strName;
 	CString to_user;
+	CString to_IP;
+	int to_Port;
+	BOOL is_connect;
 	CString m_caption;//对话框标题设置
-	char *touser;
+
+public:
+	CSessionSocket *pChatSocket;
+	CEdit m_edit_text;
 };

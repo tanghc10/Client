@@ -7,6 +7,7 @@
 #include "Header.h"
 #include "ClientDlg.h"
 #include "ResetPswDlg.h"
+#include "ChatDlg.h"
 
 // CSessionSocket
 
@@ -35,6 +36,7 @@ void CSessionSocket::OnReceive(int nErrorCode)
 	head.type = ((LPHEADER)pHead)->type;
 	head.nContentLen = ((LPHEADER)pHead)->nContentLen;
 	memset(head.to_user, 0, sizeof(head.to_user));
+	strcpy(head.to_user, ((LPHEADER)pHead)->to_user);
 	memset(head.from_user, 0, sizeof(head.from_user));
 	strcpy(head.from_user, ((LPHEADER)pHead)->from_user);
 	delete pHead;
@@ -75,6 +77,16 @@ void CSessionSocket::OnReceive(int nErrorCode)
 		case MSG_RESET:
 			((CResetPswDlg*)(AfxGetApp()->GetMainWnd()))->On_GetReset(pBuff);
 			break;
+		case MSG_GETIP:
+			((CClientDlg*)(AfxGetApp()->GetMainWnd()))->OnGetIp(pBuff);
+			break;
+		case MSG_SEND:
+		{
+			CString Name(head.to_user);
+			m_strUserName = Name;
+			((CClientDlg*)(AfxGetApp()->GetMainWnd()))->GetNewMsg(head, pBuff);
+			break;
+		}
 		default: break;
 	}
 	delete pBuff;

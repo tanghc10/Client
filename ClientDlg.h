@@ -5,6 +5,7 @@
 #pragma once
 
 #include "MyListBox.h"
+#include "Header.h"
 
 // CClientDlg 对话框
 class CClientDlg : public CDialogEx
@@ -37,6 +38,8 @@ public:
 	CString m_caption;//对话框标题设置
 	char *toUser;
 	afx_msg void On_choose();
+	void GetNewMsg(HEADER head, char * buf);
+	void OnGetIp(char *buf);
 	CPtrList *m_chatList;
 	CMyListBox m_listBox;
 };

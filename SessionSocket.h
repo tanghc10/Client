@@ -2,8 +2,7 @@
 
 // CSessionSocket ÃüÁîÄ¿±ê
 
-class CSessionSocket : public CAsyncSocket
-{
+class CSessionSocket : public CAsyncSocket{
 public:
 	CSessionSocket();
 	virtual ~CSessionSocket();

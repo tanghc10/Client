@@ -57,11 +57,6 @@ void CLogInDlg::OnBnClickedBtnLogoin()
 
 	CSessionSocket* pSock = theApp.GetMainSocket();
 	if (pSock->Is_Connect == FALSE) {
-		IN_ADDR addr;
-		addr.S_un.S_addr = htonl(m_dwIP);
-		//inet_ntoa返回一个char *,而这个char *的空间是在inet_ntoa里面静态分配
-		CString strIP(inet_ntoa(addr));
-		//开始只是创建了，并没有连接，这里连接socket，这个5050端口要和服务端监听的端口一直，否则监听不到的。
 		CString ip = _T("192.168.11.1");
 		pSock->Connect(ip, 5050);
 		pSock->Is_Connect = TRUE;
@@ -74,6 +69,9 @@ void CLogInDlg::OnBnClickedBtnLogoin()
 	CString MD5Password(a.data());
 
 	cJSON *json_root = NULL;
+	char port[6];
+	itoa(theApp.ListenPort, port, 10);
+	CString Port(port);
 	CString str = _T("{\"username\":\"") + m_strUser + _T("\", \"password\":\"") + MD5Password + _T("\"}");
 	int len = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
 	char *data = new char[len + 1];
@@ -93,6 +91,8 @@ void CLogInDlg::RvcFromServer(char *buf) {
 	int cmd = cJSON_GetObjectItem(json_root, "cmd")->valueint;
 
 	if (cmd == 1) {
+		int port = cJSON_GetObjectItem(json_root, "port")->valueint;
+		theApp.ListenToPort(port);
 		CDialogEx::OnOK();
 	}
 	else {

@@ -76,7 +76,7 @@ BOOL CClientApp::InitInstance()
 		return false;
 	}
 
-	if (m_pSocket->Create(0, SOCK_STREAM, FD_READ | FD_WRITE | FD_OOB | FD_ACCEPT | FD_CONNECT | FD_CLOSE, _T("192.168.11.1")) == FALSE)
+	if (m_pSocket->Create(0, SOCK_STREAM, FD_READ | FD_WRITE | FD_OOB | FD_CONNECT | FD_CLOSE, _T("192.168.11.1")) == FALSE)
 	{
 		AfxMessageBox(_T("创建套接字失败！"));
 		return false;
@@ -141,4 +141,31 @@ CSessionSocket* CClientApp::GetMainSocket() const
 CLogInDlg *CClientApp::GetLoginDlg() const
 {
 	return pLogoinDlg;
+}
+
+void CClientApp::ListenToPort(int Port) {
+	m_pListenSocket = new CListenSocket();
+	if (!m_pListenSocket)
+	{
+		AfxMessageBox(_T("动态创建服务器套接字出错!"));
+		return;
+	}
+
+	if (m_pListenSocket->Create(Port, SOCK_STREAM, FD_ACCEPT) == FALSE)
+	{
+		AfxMessageBox(_T("创建套接字失败!"), MB_OK | MB_ICONEXCLAMATION);
+		m_pListenSocket->Close();
+		return;
+	}
+
+	// 侦听成功，等待连接请求
+	if (m_pListenSocket->Listen() == FALSE)
+	{
+		if (m_pListenSocket->GetLastError() == WSAEWOULDBLOCK)
+		{
+			AfxMessageBox(_T("网络侦听失败!"));//因为vs2005默认使用的是unicode字符编码集，而unicode要占2byte,通常的字符只占1byte,所以导致无法转换，故需要加上 _T("") 或 L"" 进行转换。
+			m_pListenSocket->Close();
+			return;
+		}
+	}
 }

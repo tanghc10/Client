@@ -10,6 +10,7 @@
 
 #include "resource.h"		// Ö÷·ûºÅ
 #include "SessionSocket.h"
+#include "ListenSocket.h"
 #include "LogInDlg.h"
 
 // CClientApp: 
@@ -31,8 +32,11 @@ public:
 
 	DECLARE_MESSAGE_MAP()
 public:
+	CListenSocket *m_pListenSocket;//¼àÌýsocketÖ¸Õë
+	void ListenToPort(int Port);
 	CSessionSocket *GetMainSocket() const;
 	CLogInDlg *GetLoginDlg() const;
+	int ListenPort;
 private:
 	CSessionSocket *m_pSocket;
 	CLogInDlg* pLogoinDlg;
