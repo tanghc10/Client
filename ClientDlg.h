@@ -40,6 +40,7 @@ public:
 	afx_msg void On_choose();
 	void GetNewMsg(HEADER head, char * buf);
 	void OnGetIp(char *buf);
+	void OnRcvOfflineMsg(HEADER head, char *buf);
 	CPtrList *m_chatList;
 	CMyListBox m_listBox;
 };

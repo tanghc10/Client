@@ -250,3 +250,14 @@ void CClientDlg::GetNewMsg(HEADER head, char * buf) {
 		}
 	}
 }
+
+void CClientDlg::OnRcvOfflineMsg(HEADER head, char *buf) {
+	cJSON *json_root = NULL;
+	json_root = cJSON_Parse(buf);
+	if (json_root == NULL) {
+		return;
+	}
+	char *offlineMsg = cJSON_GetObjectItem(json_root, "offlineMsg")->valuestring;
+	CString Str(offlineMsg);
+	AfxMessageBox(Str);
+}
