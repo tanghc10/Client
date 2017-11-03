@@ -87,6 +87,9 @@ void CSessionSocket::OnReceive(int nErrorCode)
 			((CClientDlg*)(AfxGetApp()->GetMainWnd()))->GetNewMsg(head, pBuff);
 			break;
 		}
+		case MSG_OFFLINE:
+			((CClientDlg*)(AfxGetApp()->GetMainWnd()))->OnRcvOfflineMsg(head, pBuff);
+			break;
 		default: break;
 	}
 	delete pBuff;
