@@ -63,6 +63,9 @@
     <ClInclude Include="ListenSocket.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="IPInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -114,6 +117,12 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\Client.ico">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="C:\Users\73843\Desktop\QQ.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="res\QQ.bmp">
       <Filter>资源文件</Filter>
     </Image>
   </ItemGroup>

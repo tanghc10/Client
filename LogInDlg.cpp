@@ -5,6 +5,7 @@
 #include "Client.h"
 #include "MD5.h"
 #include "LogInDlg.h"
+#include "IPInfo.h"
 #include "Header.h"
 #include "cJSON.h"
 #include "RegisterDlg.h"
@@ -22,9 +23,6 @@ CLogInDlg::CLogInDlg(CWnd* pParent /*=NULL*/)
 	, m_strUser(_T(""))
 	, m_strPsw(_T(""))
 {
-	//初始化IP地址
-	//DWORD 就是unSigned long
-	m_dwIP = ntohl(inet_addr("192.168.11.1"));
 }
 
 CLogInDlg::~CLogInDlg()
@@ -54,44 +52,49 @@ void CLogInDlg::OnBnClickedBtnLogoin()
 		AfxMessageBox(_T("用户名不能为空！"));
 		return;
 	}
-
+	/*与服务器建立连接*/
 	CSessionSocket* pSock = theApp.GetMainSocket();
 	if (pSock->Is_Connect == FALSE) {
-		CString ip = _T("192.168.11.1");
-		pSock->Connect(ip, 5050);
-		pSock->Is_Connect = TRUE;
+		CString ip(Server_IP);
+		pSock->Connect(ip, Server_Port);
 	}
 
+	/*密码加密：MD5*/
 	_bstr_t b(m_strPsw);
 	char* c = b;
 	string Psw = c;
 	string a = MD5(Psw).toStr();
 	CString MD5Password(a.data());
 
+	/*以json格式向服务器发送数据*/
 	cJSON *json_root = NULL;
-	char port[6];
-	itoa(theApp.ListenPort, port, 10);
-	CString Port(port);
 	CString str = _T("{\"username\":\"") + m_strUser + _T("\", \"password\":\"") + MD5Password + _T("\"}");
 	int len = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
 	char *data = new char[len + 1];
 	WideCharToMultiByte(CP_ACP, 0, str, -1, data, len, NULL, NULL);
-
 	_bstr_t Name(m_strUser);
 	char *name = Name;
-	//发送
 	pSock->m_strUserName = m_strUser;  //将用户名字传递过去
-	pSock->LogoIn(data, strlen(data), name);
+	HEADER head;
+	head.type = MSG_LOGIN;
+	head.nContentLen = len + 1;
+	memset(head.to_user, 0, sizeof(head.to_user));
+	strcpy(head.to_user, "Server");
+	memset(head.from_user, 0, sizeof(head.from_user));
+	strcpy(head.from_user, name);
+	pSock->SendMSG(head, data);
 }
 
 void CLogInDlg::RvcFromServer(char *buf) {
-
 	cJSON *json_root = NULL;
 	json_root = cJSON_Parse(buf);
-	int cmd = cJSON_GetObjectItem(json_root, "cmd")->valueint;
-
+	if (json_root == NULL) {
+		AfxMessageBox(_T("接受数据格式有误"));
+		return;
+	}
+	int cmd = cJSON_GetObjectItem(json_root, _CMD)->valueint;	//是否登录成功
 	if (cmd == 1) {
-		int port = cJSON_GetObjectItem(json_root, "port")->valueint;
+		int port = cJSON_GetObjectItem(json_root, _PORT)->valueint;
 		theApp.ListenToPort(port);
 		CDialogEx::OnOK();
 	}
@@ -100,24 +103,6 @@ void CLogInDlg::RvcFromServer(char *buf) {
 		AfxMessageBox(str);
 		return;
 	}
-}
-
-BOOL CLogInDlg::OnInitDialog()
-{
-	CDialogEx::OnInitDialog();
-	UpdateData(0);
-	((CEdit*)GetDlgItem(IDC_ET_PSW))->SetWindowTextW(_T(""));
-	return TRUE;
-}
-
-BOOL CLogInDlg::WChar2MByte(LPCWSTR lpSrc, LPSTR lpDest, int nlen)
-{
-	int n = 0;
-	n = WideCharToMultiByte(CP_OEMCP, 0, lpSrc, -1, lpDest, 0, 0, FALSE);
-	if (n<nlen)
-		return FALSE;
-	WideCharToMultiByte(CP_OEMCP, 0, lpSrc, -1, lpDest, nlen, 0, FALSE);
-	return TRUE;
 }
 
 void CLogInDlg::to_Regist()

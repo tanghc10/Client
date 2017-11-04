@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "Client.h"
 #include "ClientDlg.h"
+#include "IPInfo.h"
 #include "cJSON.h"
 #include "Header.h"
 #include "afxdialogex.h"
@@ -141,8 +142,12 @@ void CClientDlg::UpdateUserInfo(CString strInfo)  //显示所有用户
 		char *data = b;
 		cJSON *json_root = NULL;
 		json_root = cJSON_Parse(data);
-		char *name = cJSON_GetObjectItem(json_root, "name")->valuestring;
-		char *status = cJSON_GetObjectItem(json_root, "status")->valuestring;
+		if (json_root == NULL) {
+			AfxMessageBox(_T("收到数据格式有误"));
+			return;
+		}
+		char *name = cJSON_GetObjectItem(json_root, _NAME)->valuestring;
+		char *status = cJSON_GetObjectItem(json_root, _STATUS)->valuestring;
 		CString Name(name);
 		if (Name.Compare(m_strUserName) != 0)
 		{
@@ -166,18 +171,12 @@ void CClientDlg::On_choose()
 		return;
 	}
 	m_listBox.GetText(nIndex, tep);
-	DWORD m_dwIP = ntohl(inet_addr("192.168.11.1"));
 	CSessionSocket* pSock = theApp.GetMainSocket();
-	//if (pSock->Is_Connect == FALSE) {
-		IN_ADDR addr;
-		addr.S_un.S_addr = htonl(m_dwIP);
-		//inet_ntoa返回一个char *,而这个char *的空间是在inet_ntoa里面静态分配
-		CString strIP(inet_ntoa(addr));
-		//开始只是创建了，并没有连接，这里连接socket，这个5050端口要和服务端监听的端口一直，否则监听不到的。
-		CString ip = _T("192.168.11.1");
-		pSock->Connect(ip, 5050);
+	if (pSock->Is_Connect == FALSE) {
+		CString ip(Server_IP);
+		pSock->Connect(ip, Server_Port);
 		pSock->Is_Connect = TRUE;
-	//}
+	}
 
 	cJSON *json_root = NULL;
 	CString str = _T("{\"touser\":\"") + tep + _T("\"}");
@@ -195,18 +194,7 @@ void CClientDlg::On_choose()
 	memset(head.from_user, 0, sizeof(head.from_user));
 	strcpy(head.from_user, name);
 
-	pSock->Send(&head, sizeof(head));
-	pSock->Send(data, len + 1);
-}
-
-BOOL CClientDlg::WChar2MByte(LPCWSTR lpSrc, LPSTR lpDest, int nlen)
-{
-	int n = 0;
-	n = WideCharToMultiByte(CP_OEMCP, 0, lpSrc, -1, lpDest, 0, 0, FALSE);  //返回缓冲区大小
-	if (nlen<n)
-		return FALSE;
-	WideCharToMultiByte(CP_OEMCP, 0, lpSrc, -1, lpDest, nlen, 0, FALSE);   //转换
-	return TRUE;
+	pSock->SendMSG(head, data);
 }
 
 void CClientDlg::OnGetIp(char *buf) {
@@ -215,10 +203,10 @@ void CClientDlg::OnGetIp(char *buf) {
 	if (json_root == NULL) {
 		return;
 	}
-	char *isOnline = cJSON_GetObjectItem(json_root, "isOnline")->valuestring;
-	char *ip = cJSON_GetObjectItem(json_root, "ip")->valuestring;
-	char *port = cJSON_GetObjectItem(json_root, "port")->valuestring;
-	char *touser = cJSON_GetObjectItem(json_root, "touser")->valuestring;
+	char *isOnline = cJSON_GetObjectItem(json_root, _ISONLINE)->valuestring;
+	char *ip = cJSON_GetObjectItem(json_root, _IP)->valuestring;
+	char *port = cJSON_GetObjectItem(json_root, _PORT)->valuestring;
+	char *touser = cJSON_GetObjectItem(json_root, _TOUSER)->valuestring;
 	CChatDlg *chatdlg;
 	CString toUser(touser);
 	chatdlg = new CChatDlg();
@@ -257,7 +245,7 @@ void CClientDlg::OnRcvOfflineMsg(HEADER head, char *buf) {
 	if (json_root == NULL) {
 		return;
 	}
-	char *offlineMsg = cJSON_GetObjectItem(json_root, "offlineMsg")->valuestring;
+	char *offlineMsg = cJSON_GetObjectItem(json_root, _OFFLINEMSG)->valuestring;
 	CString Str(offlineMsg);
 	AfxMessageBox(Str);
 }

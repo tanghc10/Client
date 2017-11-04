@@ -20,13 +20,10 @@ public:
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-	BOOL WChar2MByte(LPCWSTR lpSrc, LPSTR lpDest, int nlen);
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnBnClickedBtnLogoin();
-	virtual BOOL OnInitDialog();
 	void RvcFromServer(char *buf);
-	DWORD m_dwIP;
 	CString m_strUser;
 	CRegisterDlg *registDlg;
 	CResetPswDlg *resetDlg;

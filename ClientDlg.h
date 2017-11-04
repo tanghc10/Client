@@ -26,7 +26,6 @@ public:
 // 实现
 protected:
 	HICON m_hIcon;
-	BOOL WChar2MByte(LPCTSTR lpSrc, LPSTR lpDest, int nlen);
 	// 生成的消息映射函数
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
@@ -36,11 +35,11 @@ protected:
 
 public:
 	CString m_caption;//对话框标题设置
-	char *toUser;
 	afx_msg void On_choose();
 	void GetNewMsg(HEADER head, char * buf);
 	void OnGetIp(char *buf);
 	void OnRcvOfflineMsg(HEADER head, char *buf);
+public:
 	CPtrList *m_chatList;
 	CMyListBox m_listBox;
 };

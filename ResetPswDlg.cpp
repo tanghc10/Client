@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "Client.h"
 #include "MD5.h"
+#include "IPInfo.h"
 #include "Header.h"
 #include "cJSON.h"
 #include "ResetPswDlg.h"
@@ -27,7 +28,6 @@ CResetPswDlg::CResetPswDlg(CWnd* pParent /*=NULL*/)
 
 CResetPswDlg::~CResetPswDlg()
 {
-	m_dwIP = ntohl(inet_addr("192.168.11.1"));
 }
 
 void CResetPswDlg::DoDataExchange(CDataExchange* pDX)
@@ -51,13 +51,10 @@ BEGIN_MESSAGE_MAP(CResetPswDlg, CDialogEx)
 	ON_BN_CLICKED(BTN_GETQUE, &CResetPswDlg::On_GetQuestion)
 END_MESSAGE_MAP()
 
-
-// CResetPswDlg 消息处理程序
-
-
 void CResetPswDlg::On_ResetPsw()
 {
 	UpdateData(TRUE);
+	/*检查消息是否完整*/
 	if (m_username.IsEmpty() || m_answer.IsEmpty() || m_password.IsEmpty()) {
 		AfxMessageBox(_T("请完成填写上述所有信息！"));
 		return;
@@ -66,20 +63,19 @@ void CResetPswDlg::On_ResetPsw()
 		return;
 	}
 
+	/*密码的加密*/
 	_bstr_t p(m_password);
 	char* c = p;
 	string Psw = c;
 	string a = MD5(Psw).toStr();
 	CString MD5Password(a.data());
-
+	/*准备要发送的数据*/
 	CString str = _T("{\"username\":\"") + m_username + _T("\", \"password\":\"") + MD5Password + _T("\", \"answer\":\"") + m_answer + _T("\"}");
 	int len = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
 	char *data = new char[len + 1];
 	WideCharToMultiByte(CP_ACP, 0, str, -1, data, len, NULL, NULL);
-
 	_bstr_t b(m_username);
 	char *name = b;
-
 	HEADER head;
 	head.type = MSG_RESET;
 	head.nContentLen = len + 1;
@@ -87,26 +83,18 @@ void CResetPswDlg::On_ResetPsw()
 	strcpy(head.from_user, name);
 	memset(head.to_user, 0, sizeof(head.to_user));
 	strcpy(head.to_user, "Server");
-
 	CSessionSocket* pSock = theApp.GetMainSocket();
 	if (pSock->Is_Connect == FALSE) {
-		IN_ADDR addr;
-		addr.S_un.S_addr = htonl(m_dwIP);
-		//inet_ntoa返回一个char *,而这个char *的空间是在inet_ntoa里面静态分配
-		CString strIP(inet_ntoa(addr));
-		//开始只是创建了，并没有连接，这里连接socket，这个5050端口要和服务端监听的端口一直，否则监听不到的。
-		CString ip = _T("192.168.11.1");
-		pSock->Connect(ip, 5050);
+		CString ip(Server_IP);
+		pSock->Connect(ip, Server_Port);
 		pSock->Is_Connect = TRUE;
 	}
-	pSock->Send(&head, sizeof(head));
-	pSock->Send(data, len + 1);
+	pSock->SendMSG(head, data);
 }
 
 BOOL CResetPswDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
-
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
 }
@@ -118,14 +106,13 @@ void CResetPswDlg::On_GetQuestion()
 		AfxMessageBox(_T("请输入用户名"));
 		return;
 	}
+	/*准备发送的数据*/
 	CString str = _T("{\"username\":\"") + m_username + _T("\"}");
 	int len = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
 	char *data = new char[len + 1];
 	WideCharToMultiByte(CP_ACP, 0, str, -1, data, len, NULL, NULL);
-
 	_bstr_t b(m_username);
 	char *name = b;
-
 	HEADER head;
 	head.type = MSG_GETQUE;
 	head.nContentLen = len + 1;
@@ -136,28 +123,26 @@ void CResetPswDlg::On_GetQuestion()
 
 	CSessionSocket* pSock = theApp.GetMainSocket();
 	if (pSock->Is_Connect == FALSE) {
-		IN_ADDR addr;
-		addr.S_un.S_addr = htonl(m_dwIP);
-		//inet_ntoa返回一个char *,而这个char *的空间是在inet_ntoa里面静态分配
-		CString strIP(inet_ntoa(addr));
-		//开始只是创建了，并没有连接，这里连接socket，这个5050端口要和服务端监听的端口一直，否则监听不到的。
-		CString ip = _T("192.168.11.1");
-		pSock->Connect(ip, 5050);
+		CString ip(Server_IP);
+		pSock->Connect(ip, Server_Port);
 		pSock->Is_Connect = TRUE;
 	}
-	pSock->Send(&head, sizeof(head));
-	pSock->Send(data, len + 1);
+	pSock->SendMSG(head, data);
 }
 
 void CResetPswDlg::RcvQuestion(char *buff) {
 	cJSON *json_root = NULL;
 	json_root = cJSON_Parse(buff);
-	int cmd = cJSON_GetObjectItem(json_root, "cmd")->valueint;
+	if (json_root == NULL) {
+		AfxMessageBox(_T("接收数据格式有误"));
+		return;
+	}
+	int cmd = cJSON_GetObjectItem(json_root, _CMD)->valueint;
 	if (cmd == 0) {
 		AfxMessageBox(_T("无效的用户名"));
 		return;
 	}
-	char *name = cJSON_GetObjectItem(json_root, "question")->valuestring;
+	char *name = cJSON_GetObjectItem(json_root, _QUESTION)->valuestring;
 	CString str(name);
 	SetDlgItemText(RESET_QUE, str);
 }
@@ -165,13 +150,18 @@ void CResetPswDlg::RcvQuestion(char *buff) {
 void CResetPswDlg::On_GetReset(char *buff) {
 	cJSON *json_root = NULL;
 	json_root = cJSON_Parse(buff);
-	int cmd = cJSON_GetObjectItem(json_root, "cmd")->valueint;
+	if (json_root == NULL) {
+		AfxMessageBox(_T("接收数据格式有误"));
+		return;
+	}
+	int cmd = cJSON_GetObjectItem(json_root, _CMD)->valueint;
 	if (cmd == 1) {
 		AfxMessageBox(_T("修改成功"));
 		CDialogEx::OnCancel();
 	}
 	else {
 		AfxMessageBox(_T("用户名不存在或密保问题错误"));
+		theApp.GetMainSocket()->Is_Connect = FALSE;
 		return;
 	}
 }

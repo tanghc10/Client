@@ -21,7 +21,6 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-	DWORD m_dwIP;
 	CString m_answer;
 	CString m_pswComfirm;
 	CString m_password;

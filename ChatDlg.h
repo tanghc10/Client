@@ -14,12 +14,9 @@ public:
 
 // 对话框数据
 	enum { IDD = IDD_CHATDLG };
-public:
-	void UpdateText(CString& strText);  //更新聊天记录
 
 // 实现
 protected:
-	BOOL WChar2MByte(LPCTSTR lpSrc, LPSTR lpDest, int nlen);
 	// 生成的消息映射函数
 	virtual BOOL OnInitDialog();
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
@@ -27,19 +24,18 @@ protected:
 
 public:
 	afx_msg void OnBnClickedBtnSend();
-	void ConnnectToUser();
 	void OnGetNewMsg(char *);
-	CSessionSocket *GetSocket();
 	void SetCaption(CString newCaption);
-	CString m_strSend;
-	CString m_strName;
-	CString to_user;
-	CString to_IP;
-	int to_Port;
-	BOOL is_connect;
-	CString m_caption;//对话框标题设置
+	
 
 public:
-	CSessionSocket *pChatSocket;
-	CEdit m_edit_text;
+	CSessionSocket *pChatSocket;	//用于聊天的socket
+	CEdit m_edit_text;	//输入框
+	CString m_strSend;	//发送的字符串
+	CString m_strName;	//本地用户名
+	CString to_user;	//目标用户名
+	CString to_IP;		//目标用户IP
+	int to_Port;		//目标用户端口
+	BOOL is_connect;	//用于标识是否已建立连接
+	CString m_caption;//对话框标题设置
 };

@@ -7,6 +7,7 @@
 #include "ClientDlg.h"
 #include "ChatDlg.h"
 #include "LogInDlg.h"
+#include "IPInfo.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -68,26 +69,23 @@ BOOL CClientApp::InitInstance()
 		AfxMessageBox(_T("初始化Socket库失败！"));
 		return false;
 	}
-
 	m_pSocket = new CSessionSocket();
 	if (!m_pSocket)
 	{
 		AfxMessageBox(_T("内存不足！"));
 		return false;
 	}
-
-	if (m_pSocket->Create(0, SOCK_STREAM, FD_READ | FD_WRITE | FD_OOB | FD_CONNECT | FD_CLOSE, _T("192.168.11.1")) == FALSE)
+	CString IP(Server_IP);
+	if (m_pSocket->Create(0, SOCK_STREAM, FD_READ | FD_WRITE | FD_OOB | FD_CONNECT | FD_CLOSE) == FALSE)
 	{
 		AfxMessageBox(_T("创建套接字失败！"));
 		return false;
 	}
-
 	pLogoinDlg = new CLogInDlg();
 	CString m_strUser;
 	INT_PTR rsp = pLogoinDlg->DoModal();
 	if (rsp == IDCANCEL)
 	{
-		//不登录
 		delete pLogoinDlg;
 		m_pSocket->Close();
 		return false;
@@ -97,19 +95,17 @@ BOOL CClientApp::InitInstance()
 		m_strUser = pLogoinDlg->m_strUser;
 		delete pLogoinDlg;
 	}
-
 	CClientDlg dlg;
 	dlg.m_caption = m_strUser;
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
 	if (nResponse == IDOK)
 	{
-		
+		delete dlg;
 	}
 	else if (nResponse == IDCANCEL)
 	{
-		// TODO: 在此放置处理何时用
-		//  “取消”来关闭对话框的代码
+		delete dlg;
 	}
 	// 删除上面创建的 shell 管理器。
 	if (pShellManager != NULL)
@@ -129,18 +125,12 @@ int CClientApp::ExitInstance()
 		delete m_pSocket;
 		m_pSocket = NULL;
 	}
-
 	return CWinApp::ExitInstance();
 }
 
 CSessionSocket* CClientApp::GetMainSocket() const
 {
 	return m_pSocket;
-}
-
-CLogInDlg *CClientApp::GetLoginDlg() const
-{
-	return pLogoinDlg;
 }
 
 void CClientApp::ListenToPort(int Port) {
@@ -150,14 +140,12 @@ void CClientApp::ListenToPort(int Port) {
 		AfxMessageBox(_T("动态创建服务器套接字出错!"));
 		return;
 	}
-
 	if (m_pListenSocket->Create(Port, SOCK_STREAM, FD_ACCEPT) == FALSE)
 	{
 		AfxMessageBox(_T("创建套接字失败!"), MB_OK | MB_ICONEXCLAMATION);
 		m_pListenSocket->Close();
 		return;
 	}
-
 	// 侦听成功，等待连接请求
 	if (m_pListenSocket->Listen() == FALSE)
 	{
