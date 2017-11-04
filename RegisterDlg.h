@@ -21,15 +21,14 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV Ö§³Ö
 	virtual BOOL OnInitDialog();
 	void comboBoxInit();
-
+	afx_msg void OnRegist();
 	DECLARE_MESSAGE_MAP()
 public:
-	DWORD m_dwIP;
+	void getRegistMsg(char *buf);
+public:
 	CString userName;
 	CString userPassword;
 	CString passwordConfirm;
 	CString userAnswer;
 	CComboBox m_ComboBox;
-	afx_msg void OnRegist();
-	void getRegistMsg(char *buf);
 };

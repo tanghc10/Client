@@ -35,8 +35,6 @@ public:
 	CListenSocket *m_pListenSocket;//º‡Ã˝socket÷∏’Î
 	void ListenToPort(int Port);
 	CSessionSocket *GetMainSocket() const;
-	CLogInDlg *GetLoginDlg() const;
-	int ListenPort;
 private:
 	CSessionSocket *m_pSocket;
 	CLogInDlg* pLogoinDlg;

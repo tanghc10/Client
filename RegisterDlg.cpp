@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "Client.h"
 #include "RegisterDlg.h"
+#include "IPInfo.h"
 #include "afxdialogex.h"
 #include "MD5.h"
 #include "cJSON.h"
@@ -20,7 +21,6 @@ CRegisterDlg::CRegisterDlg(CWnd* pParent /*=NULL*/)
 	, passwordConfirm(_T(""))
 	, userAnswer(_T(""))
 {
-	m_dwIP = ntohl(inet_addr("192.168.11.1"));
 }
 
 CRegisterDlg::~CRegisterDlg()
@@ -53,16 +53,14 @@ END_MESSAGE_MAP()
 BOOL CRegisterDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
-
 	comboBoxInit();
-
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // 异常: OCX 属性页应返回 FALSE
 }
 
 void CRegisterDlg::comboBoxInit() {
 	m_ComboBox.AddString(_T("您的学号（或工号）是？"));
-	m_ComboBox.AddString(_T("您配偶的生日是？"));
+	m_ComboBox.AddString(_T("您的的生日是？"));
 	m_ComboBox.AddString(_T("您初中班主任的名字是？"));
 	m_ComboBox.AddString(_T("您最熟悉的童年好友名字是？"));
 }
@@ -70,9 +68,11 @@ void CRegisterDlg::comboBoxInit() {
 void CRegisterDlg::OnRegist()
 {
 	UpdateData(TRUE);
+	/*获取密保问题*/
 	int nIndex = m_ComboBox.GetCurSel();
 	CString question;
 	m_ComboBox.GetLBText(nIndex, question);
+	/*检查填写的信息的可靠性*/
 	if (userName.IsEmpty() || userPassword.IsEmpty() || passwordConfirm.IsEmpty() || userAnswer.IsEmpty()) {
 		AfxMessageBox(_T("请完成填写上述所有信息！"));
 		return;
@@ -85,18 +85,17 @@ void CRegisterDlg::OnRegist()
 		AfxMessageBox(_T("请检查两次密码输入是否相同！"));
 		return;
 	}
-
+	/*密码加密*/
 	_bstr_t b(userPassword);
 	char* c = b;
 	string Psw = c;
 	string a = MD5(Psw).toStr();
 	CString MD5Password(a.data());
-
+	/*准备发送的数据*/
 	CString str = _T("{\"username\":\"") + userName + _T("\", \"password\":\"") + MD5Password + _T("\", \"question\":\"") + question + _T("\", \"answer\":\"") + userAnswer + _T("\"}");
 	int len = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
 	char *data = new char[len + 1];
 	WideCharToMultiByte(CP_ACP, 0, str, -1, data, len, NULL, NULL);
-
 	HEADER head;
 	head.type = MSG_REGIST;
 	head.nContentLen = len + 1;
@@ -108,21 +107,21 @@ void CRegisterDlg::OnRegist()
 
 	CSessionSocket* pSock = theApp.GetMainSocket();
 	if (pSock->Is_Connect == FALSE) {
-		//开始只是创建了，并没有连接，这里连接socket，这个5050端口要和服务端监听的端口一直，否则监听不到的。
-		CString ip = _T("192.168.11.1");
-		pSock->Connect(ip, 5050);
+		CString ip(Server_IP);
+		pSock->Connect(ip, Server_Port);
 		pSock->Is_Connect = TRUE;
 	}
-	pSock->Send(&head, sizeof(head));
-	pSock->Send(data, len + 1);
+	pSock->SendMSG(head, data);
 }
 
 void CRegisterDlg::getRegistMsg(char *buf) {
-
 	cJSON *json_root = NULL;
 	json_root = cJSON_Parse(buf);
-	int cmd = cJSON_GetObjectItem(json_root, "cmd")->valueint;
-
+	if (json_root == NULL) {
+		AfxMessageBox(_T("收到的数据格式有误"));
+		return;
+	}
+	int cmd = cJSON_GetObjectItem(json_root, _CMD)->valueint;
 	if (cmd == 1) {
 		CString str("注册成功！");
 		AfxMessageBox(str);
@@ -131,5 +130,6 @@ void CRegisterDlg::getRegistMsg(char *buf) {
 	else {
 		CString str("用户名重复！");
 		AfxMessageBox(str);
+		theApp.GetMainSocket()->Is_Connect = FALSE;
 	}
 }

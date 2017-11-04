@@ -20,19 +20,14 @@ CSessionSocket::~CSessionSocket()
 {
 }
 
-
-// CSessionSocket 成员函数
-
-
 void CSessionSocket::OnReceive(int nErrorCode)
 {
-	// TODO: 在此添加专用代码和/或调用基类
+	//先获取头部信息
 	HEADER head;
 	char* pHead = NULL;
 	pHead = new char[sizeof(head)];
 	memset(pHead, 0, sizeof(head));
 	Receive(pHead, sizeof(head));
-
 	head.type = ((LPHEADER)pHead)->type;
 	head.nContentLen = ((LPHEADER)pHead)->nContentLen;
 	memset(head.to_user, 0, sizeof(head.to_user));
@@ -41,7 +36,7 @@ void CSessionSocket::OnReceive(int nErrorCode)
 	strcpy(head.from_user, ((LPHEADER)pHead)->from_user);
 	delete pHead;
 	pHead = NULL;
-
+	/*根据头部信息中nContentLen的值动态分配空间接收后续的信息*/
 	char* pBuff = NULL;
 	pBuff = new char[head.nContentLen];
 	if (!pBuff)
@@ -57,18 +52,16 @@ void CSessionSocket::OnReceive(int nErrorCode)
 		return;
 	}
 	CString strText(pBuff);
+	/*根据头部信息中的类型将信息分发到不同的地方处理*/
 	switch (head.type)
 	{
 		case MSG_UPDATE:
-		{
-			CString strText(pBuff);
 			((CClientDlg*)(AfxGetApp()->GetMainWnd()))->UpdateUserInfo(strText);
-		}
-		break;
+			break;
 		case MSG_REGIST:
 			((CRegisterDlg*)(AfxGetApp()->GetMainWnd()))->getRegistMsg(pBuff);
 			break;
-		case MSG_LOGOIN:
+		case MSG_LOGIN:
 			((CLogInDlg*)(AfxGetApp()->GetMainWnd()))->RvcFromServer(pBuff);
 			break;
 		case MSG_GETQUE:
@@ -93,47 +86,24 @@ void CSessionSocket::OnReceive(int nErrorCode)
 		default: break;
 	}
 	delete pBuff;
+	pBuff = NULL;
 	CAsyncSocket::OnReceive(nErrorCode);
 }
 
-BOOL CSessionSocket::SendMSG(LPSTR lpBuff, int nlen, char to_user[20], char from_user[20])
+BOOL CSessionSocket::SendMSG(HEADER head, char* data)
 {
-	//生成协议头
-	HEADER head;
-	head.type = MSG_SEND;
-	head.nContentLen = nlen;
-	strcpy(head.to_user, to_user);
-	strcpy(head.from_user, from_user);
-
 	int i = Send(&head, sizeof(HEADER));
 	if (i == SOCKET_ERROR)
 	{
 		AfxMessageBox(_T("发送错误！"));
 		return FALSE;
 	};
-	if (Send(lpBuff, nlen) == SOCKET_ERROR)
+	if (Send(data, head.nContentLen) == SOCKET_ERROR)
 	{
 		AfxMessageBox(_T("发送错误！"));
 		return FALSE;
 	};
-
 	return  TRUE;
-}
-//用户登陆
-BOOL CSessionSocket::LogoIn(LPSTR lpBuff, int nlen, char from_user[20])
-{
-	HEADER _head;
-	_head.type = MSG_LOGOIN;  //头部类型
-	_head.nContentLen = nlen; //长度
-	memset(_head.to_user, 0, 20);
-	memset(_head.from_user, 0, 20);
-	strcpy(_head.from_user, from_user);
-
-	CSessionSocket* pSock = theApp.GetMainSocket();
-	pSock->Send((char *)&_head, sizeof(_head));
-	pSock->Send(lpBuff, nlen);
-
-	return TRUE;
 }
 
 void CSessionSocket::OnClose(int nErrorCode)

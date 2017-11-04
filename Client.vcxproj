@@ -187,6 +187,7 @@
     <ClInclude Include="Client.h" />
     <ClInclude Include="ClientDlg.h" />
     <ClInclude Include="Header.h" />
+    <ClInclude Include="IPInfo.h" />
     <ClInclude Include="ListenSocket.h" />
     <ClInclude Include="LogInDlg.h" />
     <ClInclude Include="MD5.h" />
@@ -224,7 +225,9 @@
     <None Include="res\Client.rc2" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="C:\Users\73843\Desktop\QQ.bmp" />
     <Image Include="res\Client.ico" />
+    <Image Include="res\QQ.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

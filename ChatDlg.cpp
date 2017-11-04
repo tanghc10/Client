@@ -46,7 +46,6 @@ BOOL CChatDlg::OnInitDialog()
 
 void CChatDlg::OnBnClickedBtnSend()
 {
-	//发送消息
 	UpdateData(TRUE);
 	if (m_strSend.IsEmpty())
 	{
@@ -60,7 +59,8 @@ void CChatDlg::OnBnClickedBtnSend()
 	int len = WideCharToMultiByte(CP_ACP, 0, m_strSend, -1, NULL, 0, NULL, NULL);
 	char *data = new char[len + 1];
 	WideCharToMultiByte(CP_ACP, 0, m_strSend, -1, data, len, NULL, NULL);
-
+	
+	/*如果没有建立起连接的话 先建立连接*/
 	if (is_connect == FALSE) {
 		pChatSocket = new CSessionSocket();
 		if (!pChatSocket)
@@ -68,17 +68,16 @@ void CChatDlg::OnBnClickedBtnSend()
 			AfxMessageBox(_T("内存不足！"));
 			return;
 		}
-
-		if (pChatSocket->Create(0, SOCK_STREAM, FD_READ | FD_WRITE | FD_OOB | FD_ACCEPT | FD_CONNECT | FD_CLOSE, _T("192.168.11.1")) == FALSE)
+		if (pChatSocket->Create(0, SOCK_STREAM, FD_READ | FD_WRITE | FD_OOB | FD_ACCEPT | FD_CONNECT | FD_CLOSE) == FALSE)
 		{
 			AfxMessageBox(_T("创建套接字失败！"));
 			return;
 		}
-
 		pChatSocket->m_strUserName = m_strName;
 		pChatSocket->Connect(to_IP, to_Port);
 		is_connect = true;
 	}
+	/*向视图显示信息的框中添加新的信息*/
 	m_edit_text.ReplaceSel(m_strSend);
 	HEADER head;
 	head.type = MSG_SEND;
@@ -92,53 +91,15 @@ void CChatDlg::OnBnClickedBtnSend()
 	char *toUser = c;
 	strcpy(head.to_user, toUser);
 
-	pChatSocket->Send(&head, sizeof(head));
-	pChatSocket->Send(data, len + 1);
+	pChatSocket->SendMSG(head, data);
 
  	m_strSend.Empty();
 	UpdateData(FALSE);
 }
 
-BOOL CChatDlg::WChar2MByte(LPCWSTR lpSrc, LPSTR lpDest, int nlen)
-{
-	int n = 0;
-	n = WideCharToMultiByte(CP_OEMCP, 0, lpSrc, -1, lpDest, 0, 0, FALSE);  //返回缓冲区大小
-	if (nlen<n)
-		return FALSE;
-	WideCharToMultiByte(CP_OEMCP, 0, lpSrc, -1, lpDest, nlen, 0, FALSE);   //转换
-	return TRUE;
-}
-
-void CChatDlg::UpdateText(CString &strText)
-{
-	((CEdit*)GetDlgItem(IDC_ET_TEXT))->ReplaceSel(strText);
-}
-
-void CChatDlg::ConnnectToUser() {
-	pChatSocket = new CSessionSocket();
-	if (!pChatSocket)
-	{
-		AfxMessageBox(_T("内存不足！"));
-		return;
-	}
-
-	if (pChatSocket->Create(0, SOCK_STREAM, FD_READ | FD_WRITE | FD_OOB | FD_ACCEPT | FD_CONNECT | FD_CLOSE, _T("192.168.11.1")) == FALSE)
-	{
-		AfxMessageBox(_T("创建套接字失败！"));
-		return;
-	}
-	//CSessionSocket *pSock = theApp.GetMainSocket();
-	pChatSocket->Connect(to_IP, to_Port);
-	is_connect = TRUE;
-}
-
 void CChatDlg::OnGetNewMsg(char *buf) {
 	CString Msg(buf);
 	m_edit_text.ReplaceSel(Msg);
-}
-
-CSessionSocket *CChatDlg::GetSocket() {
-	return pChatSocket;
 }
 
 void CChatDlg::SetCaption(CString newCaption) {
