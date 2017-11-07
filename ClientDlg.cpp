@@ -172,11 +172,9 @@ void CClientDlg::On_choose()
 	}
 	m_listBox.GetText(nIndex, tep);
 	CSessionSocket* pSock = theApp.GetMainSocket();
-	if (pSock->Is_Connect == FALSE) {
 		CString ip(Server_IP);
 		pSock->Connect(ip, Server_Port);
 		pSock->Is_Connect = TRUE;
-	}
 
 	cJSON *json_root = NULL;
 	CString str = _T("{\"touser\":\"") + tep + _T("\"}");
@@ -207,6 +205,7 @@ void CClientDlg::OnGetIp(char *buf) {
 	char *ip = cJSON_GetObjectItem(json_root, _IP)->valuestring;
 	char *port = cJSON_GetObjectItem(json_root, _PORT)->valuestring;
 	char *touser = cJSON_GetObjectItem(json_root, _TOUSER)->valuestring;
+	char *localIP = cJSON_GetObjectItem(json_root, _LOCALIP)->valuestring;
 	CChatDlg *chatdlg;
 	CString toUser(touser);
 	chatdlg = new CChatDlg();
@@ -215,6 +214,7 @@ void CClientDlg::OnGetIp(char *buf) {
 	chatdlg->to_user = toUser;
 	chatdlg->to_IP = CString(ip);
 	chatdlg->to_Port = atoi(port);
+	chatdlg->local_IP = CString(localIP);
 	m_chatList->AddTail(chatdlg);
 	//chatdlg->DoModal(); 使用模态对话框会使原对话框不可用
 	//此处应使用非模态对话框

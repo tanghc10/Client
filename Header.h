@@ -15,6 +15,7 @@ const int MSG_GETQUE = 0x06;	//获取密保问题
 const int MSG_RESET = 0x07;		//重置密码
 const int MSG_GETIP = 0x08;	//获取聊天对象IP
 const int MSG_OFFLINE = 0x09;	//离线消息
+const int MSG_FILEINFO = 0x10;	//文件信息
 
 static char* _CMD = "cmd";
 static char* _PORT = "port";
@@ -25,6 +26,8 @@ static char* _ISONLINE = "isOnline";
 static char* _IP = "ip";
 static char* _TOUSER = "touser";
 static char* _OFFLINEMSG = "offlineMsg";
+static char* _TYPE = "type";
+static char* _LOCALIP = "localIP";
 
 #pragma pack(push,1)
 typedef struct tagHeader {
@@ -35,5 +38,18 @@ typedef struct tagHeader {
 }HEADER, *LPHEADER;
 #pragma pack(pop)
 
+const int buffer_size = 1024 * 32;
+
+typedef struct filePackHeader {
+	int SegIndex;
+	int SegLength;
+	char Is_Last;
+	char checksum;
+}filePackHeader;
+
+typedef struct filePacket {
+	filePackHeader head;
+	char buffer[buffer_size];
+}filePacket;
 
 

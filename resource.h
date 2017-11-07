@@ -12,6 +12,7 @@
 #define IDD_REGISTERDLG                 106
 #define IDD_RESETPSWDLG                 107
 #define IDD_FILETRANSFERDLG             109
+#define IDD_FILETRANS                   110
 #define IDR_MAINFRAME                   128
 #define IDB_BITMAP1                     139
 #define IDC_ET_NAME                     1000
@@ -40,18 +41,20 @@
 #define RESET_PSW                       1027
 #define RESET_CFM                       1028
 #define RESET_NAME                      1029
-#define IDC_FILETRANS					1030
+#define IDC_FILETRANS                   1030
 #define BTN_GETQUE                      1031
-#define IDC_SELECT_FILE					1032
-
+#define IDC_SELECT_FILE                 1032
+#define IDC_PROGRESS1                   1039
+#define IDC_FILENAME                    1040
+#define IDC_TRANS_PERCENT               1042
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        141
+#define _APS_NEXT_RESOURCE_VALUE        142
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1039
-#define _APS_NEXT_SYMED_VALUE           110
+#define _APS_NEXT_CONTROL_VALUE         1043
+#define _APS_NEXT_SYMED_VALUE           111
 #endif
 #endif

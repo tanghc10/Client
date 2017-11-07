@@ -26,8 +26,11 @@ void CListenSocket::OnAccept(int nErrorCode)
 {
 	CChatDlg *pNewDlg = new CChatDlg();
 	CSessionSocket *pNewSocket = new CSessionSocket();
-	if (Accept(*pNewSocket)) {
+	SOCKADDR_IN addr;
+	int len = sizeof(SOCKADDR_IN);
+	if (Accept(*pNewSocket, (SOCKADDR*)&addr, &len)){
 		pNewDlg->pChatSocket = pNewSocket;
+		pNewDlg->pChatSocket->addr = addr;
 		pNewDlg->is_connect = true;
 		pNewDlg->Create(IDD_CHATDLG);
 		pNewDlg->ShowWindow(SW_SHOW);
@@ -37,5 +40,5 @@ void CListenSocket::OnAccept(int nErrorCode)
 	else {
 		delete pNewDlg;
 	}
-	CAsyncSocket::OnAccept(nErrorCode);
+	CSocket::OnAccept(nErrorCode);
 }

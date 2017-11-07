@@ -66,6 +66,12 @@
     <ClInclude Include="IPInfo.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="FileTransDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="FileSocket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp">
@@ -102,6 +108,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ListenSocket.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FileTransDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FileSocket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
