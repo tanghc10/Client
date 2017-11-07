@@ -83,11 +83,14 @@ void CSessionSocket::OnReceive(int nErrorCode)
 		case MSG_OFFLINE:
 			((CClientDlg*)(AfxGetApp()->GetMainWnd()))->OnRcvOfflineMsg(head, pBuff);
 			break;
+		case MSG_FILEINFO:
+			((CChatDlg*)(AfxGetApp()->GetMainWnd()))->On_RcvFileMsg(head, pBuff);
+			break;
 		default: break;
 	}
 	delete pBuff;
 	pBuff = NULL;
-	CAsyncSocket::OnReceive(nErrorCode);
+	CSocket::OnReceive(nErrorCode);
 }
 
 BOOL CSessionSocket::SendMSG(HEADER head, char* data)
@@ -95,12 +98,12 @@ BOOL CSessionSocket::SendMSG(HEADER head, char* data)
 	int i = Send(&head, sizeof(HEADER));
 	if (i == SOCKET_ERROR)
 	{
-		AfxMessageBox(_T("发送错误！"));
+		AfxMessageBox(_T("Send::head 发送错误！"));
 		return FALSE;
 	};
 	if (Send(data, head.nContentLen) == SOCKET_ERROR)
 	{
-		AfxMessageBox(_T("发送错误！"));
+		AfxMessageBox(_T("Send::data 发送错误！"));
 		return FALSE;
 	};
 	return  TRUE;
@@ -110,5 +113,5 @@ void CSessionSocket::OnClose(int nErrorCode)
 {
 	// TODO: 在此添加专用代码和/或调用基类
 	Is_Connect = FALSE;
-	CAsyncSocket::OnClose(nErrorCode);
+	CSocket::OnClose(nErrorCode);
 }

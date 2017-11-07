@@ -186,6 +186,8 @@
     <ClInclude Include="cJSON.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="ClientDlg.h" />
+    <ClInclude Include="FileSocket.h" />
+    <ClInclude Include="FileTransDlg.h" />
     <ClInclude Include="Header.h" />
     <ClInclude Include="IPInfo.h" />
     <ClInclude Include="ListenSocket.h" />
@@ -204,6 +206,8 @@
     <ClCompile Include="cJSON.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="ClientDlg.cpp" />
+    <ClCompile Include="FileSocket.cpp" />
+    <ClCompile Include="FileTransDlg.cpp" />
     <ClCompile Include="ListenSocket.cpp" />
     <ClCompile Include="LogInDlg.cpp" />
     <ClCompile Include="MD5.cpp" />

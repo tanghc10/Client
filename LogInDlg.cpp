@@ -96,6 +96,7 @@ void CLogInDlg::RvcFromServer(char *buf) {
 	if (cmd == 1) {
 		int port = cJSON_GetObjectItem(json_root, _PORT)->valueint;
 		theApp.ListenToPort(port);
+		theApp.ListenPort = port;
 		CDialogEx::OnOK();
 	}
 	else {

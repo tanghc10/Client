@@ -76,7 +76,7 @@ BOOL CClientApp::InitInstance()
 		return false;
 	}
 	CString IP(Server_IP);
-	if (m_pSocket->Create(0, SOCK_STREAM, FD_READ | FD_WRITE | FD_OOB | FD_CONNECT | FD_CLOSE) == FALSE)
+	if (m_pSocket->Create(0, SOCK_STREAM) == FALSE)
 	{
 		AfxMessageBox(_T("创建套接字失败！"));
 		return false;
@@ -140,7 +140,7 @@ void CClientApp::ListenToPort(int Port) {
 		AfxMessageBox(_T("动态创建服务器套接字出错!"));
 		return;
 	}
-	if (m_pListenSocket->Create(Port, SOCK_STREAM, FD_ACCEPT) == FALSE)
+	if (m_pListenSocket->Create(Port, SOCK_STREAM) == FALSE)
 	{
 		AfxMessageBox(_T("创建套接字失败!"), MB_OK | MB_ICONEXCLAMATION);
 		m_pListenSocket->Close();
