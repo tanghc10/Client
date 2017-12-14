@@ -198,21 +198,76 @@ void CChatDlg::On_RcvFileMsg(HEADER head, char *buf) {
 		CFile FileOut;
 		FileOut.Open(str, CFile::modeCreate | CFile::modeWrite);
 
-		int acceptNum = 0;
-		char buffer[1024 * 32];
-		memset(buffer, 0, 1024 * 32);
+		/*packet用来接收, buffer_head用来缓存乱序的*/
 		filePacket packet;
+		memset(packet.buffer, 0, sizeof(packet.buffer));
+		packet.head.SegIndex = 0;
+		fileBuffer *buffer_head = NULL;
+		fileBuffer *buffer_tail = NULL;
+		fileBuffer *buffer_pre = NULL;
+
+		int acceptNum = 0;
 		char ack[64];
 		memset(ack, 0, 64);
-		int count = 0;
+		int rcv_base = 0;
 		SetTimer(1, 200, NULL);
 		while (acceptNum < tolNum) {
-			int num = pSocket->ReceiveFrom(buffer, sizeof(buffer), (SOCKADDR*)&addr, &addr_len, 0);
-			FileOut.Write(buffer, num);
-			acceptNum += num;
-			count++;
-			sprintf(ack, "%d", count);
-			pSocket->SendTo(ack, sizeof(ack), toPort, CtoIP, 0);
+			int num = pSocket->ReceiveFrom((char *)&packet, sizeof(packet), (SOCKADDR*)&addr, &addr_len, 0);
+			if (rcv_base <= packet.head.SegIndex) {
+				if (rcv_base == packet.head.SegIndex) {	//是现在需要的包，直接写入文件
+					rcv_base++;
+					FileOut.Write(packet.buffer, num);
+					acceptNum += num;
+					if (buffer_head != NULL) {	//检查缓冲队列中是否有需要的包
+						fileBuffer* temp = buffer_head;
+						while (temp != NULL && rcv_base == temp->buffer.head.SegIndex)
+						{
+							FileOut.Write(temp->buffer.buffer, temp->num);
+							acceptNum += temp->num;
+							temp = temp->next;
+							free(buffer_head);
+							buffer_head = temp;
+							rcv_base++;
+						}
+					}
+				}
+				else {
+					if (buffer_head == NULL) {
+						fileBuffer *temp = (fileBuffer*)malloc(sizeof(fileBuffer));
+						memset(temp->buffer.buffer, 0, sizeof(temp->buffer.buffer));
+						strcpy(temp->buffer.buffer, packet.buffer);
+						temp->num = num;
+						temp->next = NULL;
+						temp->buffer.head.SegIndex = packet.head.SegIndex;
+						buffer_head = temp;
+					}
+					else{
+						fileBuffer *temp = (fileBuffer*)malloc(sizeof(fileBuffer));
+						memset(temp->buffer.buffer, 0, sizeof(temp->buffer.buffer));
+						strcpy(temp->buffer.buffer, packet.buffer);
+						temp->num = num;
+						temp->next = NULL;
+						temp->buffer.head.SegIndex = packet.head.SegIndex;
+
+						if (temp->buffer.head.SegIndex < buffer_head->buffer.head.SegIndex) {
+							temp->next = buffer_head;
+							buffer_head = temp;
+						}
+						else {
+							buffer_pre = buffer_head;
+							buffer_tail = buffer_pre->next;
+							while (buffer_pre->buffer.head.SegIndex < temp->buffer.head.SegIndex && buffer_tail != NULL) {
+								buffer_pre = buffer_tail;
+								buffer_tail = buffer_tail->next;
+							}
+							temp->next = buffer_tail;
+							buffer_pre->next = temp;
+						}
+					}
+				}
+				sprintf(ack, "%d", rcv_base);
+				pSocket->SendTo(ack, sizeof(ack), toPort, CtoIP, 0);
+			}
 		}
 		FileOut.Flush();
 		FileOut.Close();

@@ -109,8 +109,6 @@ void FileTransDlg::On_Select_file()
 	m_progress.SetStep(1);
 	UpdateData(FALSE);
 
-	char buffer[1024*32];
-	memset(buffer, 0, 1024*32);
 	int tolNum = 0;
 	SOCKADDR_IN addr_receive;
 	addr_receive.sin_family = AF_INET;
@@ -119,29 +117,76 @@ void FileTransDlg::On_Select_file()
 	char* to_ip = temp;
 	addr_receive.sin_addr.S_un.S_addr = inet_addr(to_ip);
 	int addr_len_rece = sizeof(SOCKADDR_IN);
+
+	/*
+	typedef struct filePackHeader {
+		int SegIndex;
+		int Is_Last;
+	}filePackHeader;
+
+	typedef struct filePacket {
+		filePackHeader head;
+		char buffer[buffer_size];
+	}filePacket;
+	*/
+	filePacket packet;
+	memset(packet.buffer, 0, sizeof(packet.buffer));
+	packet.head.SegIndex = 0;
+
 	char ack[64];
 	memset(ack, 0, 64);
-	int count = 0;
-	int receive_count = 0;
-	filePacket packet;
-	while (tolNum < len) {
-		FileIn.Seek(tolNum, CFile::begin);
-		int num = FileIn.Read(buffer, sizeof(buffer));
-		/*packet.head.SegIndex = count;
-		packet.head.SegLength = num;
-		packet.head.Is_Last = (tolNum + num == len);
-		packet.head.checksum = '0';*/
-		pSocket->SendTo(buffer, sizeof(buffer), to_Port + 1, to_IP, 0);
-		tolNum += num;
-		pSocket->ReceiveFrom(ack, 64, (SOCKADDR*)&addr_receive, &addr_len_rece, 0);
-		receive_count = atoi(ack);
-		if (receive_count == count + 1)
+
+	int send_base = 0;
+	int receive_base = 0;
+	int wait_time = 0;
+	int i = 0;
+	int current_wd = 1;
+	int limit_wd = 16;
+	int last_num = INT_MAX;
+	int stop_send = 0;
+	int resend_index = -1;
+	while (receive_base != last_num) {
+		while (i < current_wd && stop_send == 0)
 		{
-			count++;
+			if (last_num <= send_base + i)
+				break;
+			FileIn.Seek((send_base + i) * sizeof(packet.buffer), CFile::begin);
+			int num = FileIn.Read(packet.buffer, sizeof(packet.buffer));
+			packet.head.SegIndex = send_base + i;
+			pSocket->SendTo((char *)&packet, sizeof(packet), to_Port + 1, to_IP, 0);
+			tolNum += num;
+			if (num < buffer_size) {
+				last_num = send_base + i;
+				break;
+			}
+			i++;
 		}
-		else
+		pSocket->ReceiveFrom(ack, 64, (SOCKADDR*)&addr_receive, &addr_len_rece, 0);
+		receive_base = atoi(ack);
+		if (receive_base > send_base)
 		{
-			tolNum = receive_count * sizeof(buffer);
+			i -= receive_base - send_base;
+			if (i < 0) i = 0;
+			send_base = receive_base;
+			if (current_wd < limit_wd) {
+				current_wd *= 2;
+			}
+			else {
+				current_wd++;
+			}
+		}
+		else if (receive_base == send_base)
+		{
+			if (++wait_time == 3 && receive_base != resend_index) {
+				FileIn.Seek((receive_base) * sizeof(packet.buffer), CFile::begin);
+				int num = FileIn.Read(packet.buffer, sizeof(packet.buffer));
+				packet.head.SegIndex = receive_base;
+				resend_index = receive_base;
+				pSocket->SendTo((char *)&packet, sizeof(packet), to_Port + 1, to_IP, 0);
+				pSocket->SendTo((char *)&packet, sizeof(packet), to_Port + 1, to_IP, 0);
+				wait_time = 0;
+				current_wd = 1;
+			}
 		}
 		m_percent = (int)((double)tolNum / len * 100);
 		m_progress.SetPos(m_percent);

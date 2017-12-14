@@ -42,14 +42,17 @@ const int buffer_size = 1024 * 32;
 
 typedef struct filePackHeader {
 	int SegIndex;
-	int SegLength;
-	char Is_Last;
-	char checksum;
 }filePackHeader;
 
 typedef struct filePacket {
 	filePackHeader head;
 	char buffer[buffer_size];
 }filePacket;
+
+typedef struct _fileBuffer {
+	int num;
+	filePacket buffer;
+	struct _fileBuffer *next;
+}fileBuffer;
 
 
