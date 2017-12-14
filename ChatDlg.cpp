@@ -143,6 +143,7 @@ void CChatDlg::On_RcvFileMsg(HEADER head, char *buf) {
 	char *type = cJSON_GetObjectItem(json_root, _TYPE)->valuestring;
 	CString Ctype(type);
 	if (Ctype.Compare(_T("sender")) == 0) {
+		/*处理文件信息*/
 		int tolNum = cJSON_GetObjectItem(json_root, "filesize")->valueint;
 		char* fileName = cJSON_GetObjectItem(json_root, "filename")->valuestring;
 		int toPort = cJSON_GetObjectItem(json_root, "myPort")->valueint;
@@ -153,16 +154,27 @@ void CChatDlg::On_RcvFileMsg(HEADER head, char *buf) {
 		filenum.Format(_T(" 大小为 %d 字节"), tolNum);
 		CString strTmp = _T("对方向你发送了一个文件 ") + str + filenum;
 		AfxMessageBox(strTmp);
-		str = _T("c-") + str;
+		/*选择文件保存位置*/
+		/*
+		wchar_t temp[256];
+		CString Dir = temp;
+		CFolderPickerDialog dlg(Dir, 0, NULL, 0);
+		if (dlg.DoModal()) {
+			str = dlg.GetPathName() + _T("\\") + str;
+			AfxMessageBox(str);
+		}*/
+
+		/*开始准备接收文件*/
 		CFileSocket* pSocket = new CFileSocket();
 		u_long* p;
 		p = new u_long;
 		*p = 0;
 		ioctlsocket(pSocket->m_hSocket, FIONBIO, p);
+		CString Str = _T("{\"type\":\"reciver\",\"start_send\":\"1\"}");
 		if(!pSocket->Create(theApp.ListenPort+1, SOCK_DGRAM))
 		{
 			AfxMessageBox(_T("Create error"));
-			return;
+			Str = _T("{\"type\":\"reciver\",\"start_send\":\"0\"}");
 		}
 		SOCKADDR_IN addr;
 		addr.sin_family = AF_INET;
@@ -170,8 +182,22 @@ void CChatDlg::On_RcvFileMsg(HEADER head, char *buf) {
 		addr.sin_addr.S_un.S_addr = inet_addr(toIP);
 		int addr_len = sizeof(SOCKADDR_IN);
 
+		/*通知发送方开始发送*/
+		/*
+		int lenTemp = WideCharToMultiByte(CP_ACP, 0, Str, -1, NULL, 0, NULL, NULL);
+		char *data = new char[lenTemp + 1];
+		WideCharToMultiByte(CP_ACP, 0, Str, -1, data, lenTemp, NULL, NULL);
+		HEADER head;
+		head.type = MSG_FILEINFO;
+		head.nContentLen = lenTemp + 1;
+		memset(head.to_user, 0, sizeof(head.to_user));
+		memset(head.from_user, 0, sizeof(head.from_user));
+		pChatSocket->SendMSG(head, data);*/
+
+		/*准备写入文件对象*/
 		CFile FileOut;
 		FileOut.Open(str, CFile::modeCreate | CFile::modeWrite);
+
 		int acceptNum = 0;
 		char buffer[1024 * 32];
 		memset(buffer, 0, 1024 * 32);

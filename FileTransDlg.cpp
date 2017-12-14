@@ -7,6 +7,7 @@
 #include "afxdialogex.h"
 #include "SessionSocket.h"
 #include "FileSocket.h"
+#include "cJSON.h"
 
 // FileTransDlg 对话框
 
@@ -52,20 +53,20 @@ END_MESSAGE_MAP()
 
 void FileTransDlg::On_Select_file()
 {
+	/*创建文件选择窗口*/
 	CFileDialog dlgFile(TRUE, NULL, NULL, OFN_HIDEREADONLY, _T("所有文件 (*.*)|*.*||"), NULL);
 	if (dlgFile.DoModal()) {
 		m_strFileName = dlgFile.GetFileName();
 		m_strFilePath = dlgFile.GetFolderPath() + _T("\\") + m_strFileName;
 	}
-	CString WirtePath = dlgFile.GetFolderPath() + _T("\\copy-") + m_strFileName;
 	CFile FileIn;
-	//CFile FileOut;
 	FileIn.Open(m_strFilePath, CFile::typeBinary);
-	//FileOut.Open(WirtePath, CFile::modeCreate | CFile::modeWrite);
+	start_send = 0;
+
+	/*向接收方发送消息，告知文件信息*/
 	DWORD len = FileIn.GetLength();
 	CString Clen;
 	Clen.Format(_T("%d"), len);
-
 	CString myPort;
 	myPort.Format(_T("%d"), theApp.ListenPort + 1);
 	CString Str = _T("{\"type\":\"sender\",\"filename\":\"") + m_strFileName + _T("\",\"filesize\":") + Clen + _T(",\"myPort\":") + myPort + _T(", \"myIP\":\"") + local_IP +_T("\"}");
@@ -85,6 +86,12 @@ void FileTransDlg::On_Select_file()
 	strcpy(head.to_user, toName);
 	m_SessionSocket->SendMSG(head, data);
 	
+	/*等待确认接收*/
+	//while (start_send == 0) {
+	//	Sleep(50);
+	//}
+	Sleep(10 * 1000);
+	/*准备发送*/
 	CFileSocket *pSocket = new CFileSocket();
 	u_long* p;
 	p = new u_long;
@@ -96,12 +103,12 @@ void FileTransDlg::On_Select_file()
 		return;
 	}
 	pSocket->AsyncSelect(FD_READ|FD_WRITE);
-	Sleep(3 * 1000);
 	m_progress.SetRange(0, 100);
 	m_percent = 0;
 	m_progress.SetPos(m_percent);
 	m_progress.SetStep(1);
 	UpdateData(FALSE);
+
 	char buffer[1024*32];
 	memset(buffer, 0, 1024*32);
 	int tolNum = 0;
@@ -145,9 +152,15 @@ void FileTransDlg::On_Select_file()
 	pSocket->Close();
 }
 
-void FileTransDlg::OnTimer(UINT_PTR nIDEvent)
-{
-	KillTimer(nIDEvent);
-	AfxMessageBox(_T("超时！"));
-	CDialogEx::OnTimer(nIDEvent);
+void FileTransDlg::Rec_ReciverMsg(HEADER head, char *buf) {
+	cJSON *json_root = NULL;
+	json_root = cJSON_Parse(buf);
+	if (json_root == NULL) {
+		return;
+	}
+	char *type = cJSON_GetObjectItem(json_root, _TYPE)->valuestring;
+	CString Ctype(type);
+	if (Ctype.Compare(_T("reciver")) == 0) {
+		start_send = cJSON_GetObjectItem(json_root, "start_send")->valueint;
+	}
 }

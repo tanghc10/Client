@@ -151,7 +151,7 @@ void CClientApp::ListenToPort(int Port) {
 	{
 		if (m_pListenSocket->GetLastError() == WSAEWOULDBLOCK)
 		{
-			AfxMessageBox(_T("网络侦听失败!"));//因为vs2005默认使用的是unicode字符编码集，而unicode要占2byte,通常的字符只占1byte,所以导致无法转换，故需要加上 _T("") 或 L"" 进行转换。
+			AfxMessageBox(_T("网络侦听失败!"));//vs默认使用的是unicode字符编码集，而unicode要占2byte,通常的字符只占1byte,所以导致无法转换，故需要加上 _T("") 或 L"" 进行转换。
 			m_pListenSocket->Close();
 			return;
 		}

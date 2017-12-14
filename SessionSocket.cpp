@@ -8,6 +8,8 @@
 #include "ClientDlg.h"
 #include "ResetPswDlg.h"
 #include "ChatDlg.h"
+#include "FileTransDlg.h"
+#include "cJSON.h"
 
 // CSessionSocket
 
@@ -83,9 +85,22 @@ void CSessionSocket::OnReceive(int nErrorCode)
 		case MSG_OFFLINE:
 			((CClientDlg*)(AfxGetApp()->GetMainWnd()))->OnRcvOfflineMsg(head, pBuff);
 			break;
-		case MSG_FILEINFO:
-			((CChatDlg*)(AfxGetApp()->GetMainWnd()))->On_RcvFileMsg(head, pBuff);
+		case MSG_FILEINFO: {
+			cJSON *json_root = NULL;
+			json_root = cJSON_Parse(pBuff);
+			if (json_root == NULL) {
+				return;
+			}
+			char *type = cJSON_GetObjectItem(json_root, _TYPE)->valuestring;
+			CString Ctype(type);
+			if (Ctype.Compare(_T("sender")) == 0) {
+				((CChatDlg*)(AfxGetApp()->GetMainWnd()))->On_RcvFileMsg(head, pBuff);
+			}
+			else if (Ctype.Compare(_T("reciver")) == 0) {
+				((FileTransDlg*)(AfxGetApp()->GetMainWnd()))->Rec_ReciverMsg(head, pBuff);
+			}
 			break;
+		}
 		default: break;
 	}
 	delete pBuff;

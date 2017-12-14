@@ -34,5 +34,6 @@ public:
 	CString local_IP;
 	int to_Port;
 	int m_percent;
-	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	int start_send;
+	void FileTransDlg::Rec_ReciverMsg(HEADER head, char *buf);
 };
